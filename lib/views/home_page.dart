@@ -1,15 +1,21 @@
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
+import 'package:web_service/models/result_cep.dart';
 import 'package:web_service/services/via_cep_service.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
-  _HomePageState  createState() => _HomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  var _searchCepController = TextEditingController();
+  final _searchCepController = TextEditingController();
   bool _loading = false;
   bool _enableField = true;
+  bool _cepValido = false;
   String? _result;
 
   @override
@@ -22,10 +28,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Consultar CEP'),
+        title: const Text('Consultar CEP'),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
@@ -40,10 +46,23 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildSearchCepTextField() {
     return TextField(
-      autofocus: true,
+      autofocus: false,
       keyboardType: TextInputType.number,
       textInputAction: TextInputAction.done,
-      decoration: InputDecoration(labelText: 'Cep'),
+      style: const TextStyle(fontSize: 30),
+      decoration: const InputDecoration(
+        hintText: 'Cep',
+        labelStyle: TextStyle(fontSize: 25, color: Colors.black),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black),
+        ),
+        errorBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.red),
+        ),
+      ),
       controller: _searchCepController,
       enabled: _enableField,
     );
@@ -52,10 +71,13 @@ class _HomePageState extends State<HomePage> {
   Widget _buildSearchCepButton() {
     return Padding(
       padding: const EdgeInsets.only(top: 20.0),
-      child: RaisedButton(
-        onPressed: _searchCep,
-        child: _loading ? _circularLoading() : Text('Consultar'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      // ignore: deprecated_member_use
+      child: ElevatedButton(
+        //onPressed: _searchCep,
+        onPressed: () {
+          _validaCep(_searchCepController.text);
+        },
+        child: _loading ? _circularLoading() : const Text('Consultar'),
       ),
     );
   }
@@ -69,7 +91,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _circularLoading() {
-    return Container(
+    return const SizedBox(
       height: 15.0,
       width: 15.0,
       child: CircularProgressIndicator(),
@@ -81,20 +103,49 @@ class _HomePageState extends State<HomePage> {
 
     final cep = _searchCepController.text;
 
-    final resultCep = await ViaCepService.fetchCep(cep: cep);
-    print(resultCep.localidade); // Exibindo somente a localidade no terminal
+    if (cep.length == 8) {
+      final resultCep = await ViaCepService.fetchCep(cep: cep);
+      // ignore: avoid_print
+      print(resultCep.localidade); // Exibindo somente a localidade no terminal
 
-    setState(() {
-      _result = resultCep.toJson();
-    });
+      setState(() {
+        _result = resultCep.toJson();
+      });
 
-    _searching(false);
+      _searching(false);
+    } else {
+      _searching(false);
+      _showTopSnackBar(context);
+    }
   }
 
   Widget _buildResultForm() {
     return Container(
-      padding: EdgeInsets.only(top: 20.0),
+      padding: const EdgeInsets.only(top: 20.0),
       child: Text(_result ?? ''),
     );
   }
+
+  bool _validaCep(String cep) {
+    if (cep.isEmpty) {
+      setState(() {
+        _cepValido = true;
+      });
+      return false;
+    }
+    setState(() {
+      _cepValido = false;
+    });
+    _searchCep();
+    return true;
+  }
+
+  void _showTopSnackBar(BuildContext context) => Flushbar(
+        icon: const Icon(Icons.error, size: 32, color: Colors.red),
+        shouldIconPulse: false,
+        title: 'title',
+        message: 'hello',
+        duration: const Duration(seconds: 1),
+        flushbarPosition: FlushbarPosition.TOP,
+      )..show(context);
 }
