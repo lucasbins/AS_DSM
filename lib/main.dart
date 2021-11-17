@@ -27,5 +27,9 @@ class MyThemes {
     textSelectionTheme: const TextSelectionThemeData(
       cursorColor: Colors.black,
     ),
+    textTheme: const TextTheme(
+      bodyText2: TextStyle(
+          color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold),
+    ),
   );
 }

@@ -1,4 +1,6 @@
 // ignore: import_of_legacy_library_into_null_safe
+import 'dart:convert';
+
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:web_service/models/result_cep.dart';
@@ -16,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   bool _loading = false;
   bool _enableField = true;
   bool _cepValido = false;
-  String? _result;
+  String _result = '';
 
   @override
   void dispose() {
@@ -37,7 +39,7 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             _buildSearchCepTextField(),
             _buildSearchCepButton(),
-            _buildResultForm()
+            _buildResultForm(),
           ],
         ),
       ),
@@ -120,9 +122,32 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildResultForm() {
+    dynamic cep;
+    if (_result != '') {
+      cep = ResultCep.fromJson(_result);
+      return Container(
+        padding: const EdgeInsets.only(top: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text('Cep: ' + cep.cep),
+            Text('Logradouro: ' + cep.logradouro),
+            Text('Complemento: ' + cep.complemento),
+            Text('Bairro: ' + cep.bairro),
+            Text('Cidade: ' + cep.localidade),
+            Text('Estado: ' + cep.uf),
+            Text('Ibge: ' + cep.ibge),
+            Text('Gia: ' + cep.gia),
+            Text('DDD: ' + cep.ddd),
+            Text('Siafi: ' + cep.siafi),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.only(top: 20.0),
-      child: Text(_result ?? ''),
+      child: Text(''),
     );
   }
 
