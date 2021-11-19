@@ -16,6 +16,7 @@ class ResultCep {
     required this.gia,
     required this.ddd,
     required this.siafi,
+    required this.erro,
   });
 
   String cep;
@@ -28,23 +29,24 @@ class ResultCep {
   String gia;
   String ddd;
   String siafi;
+  bool erro;
 
   factory ResultCep.fromJson(String str) => ResultCep.fromMap(json.decode(str));
 
   String toJson() => json.encode(toMap());
 
   factory ResultCep.fromMap(Map<String, dynamic> json) => ResultCep(
-        cep: json["cep"],
-        logradouro: json["logradouro"],
-        complemento: json["complemento"],
-        bairro: json["bairro"],
-        localidade: json["localidade"],
-        uf: json["uf"],
-        ibge: json["ibge"],
-        gia: json["gia"],
-        ddd: json["ddd"],
-        siafi: json["siafi"],
-      );
+      cep: json["cep"],
+      logradouro: json["logradouro"],
+      complemento: json["complemento"],
+      bairro: json["bairro"],
+      localidade: json["localidade"],
+      uf: json["uf"],
+      ibge: json["ibge"],
+      gia: json["gia"],
+      ddd: json["ddd"],
+      siafi: json["siafi"],
+      erro: json["erro"]);
 
   Map<String, dynamic> toMap() => {
         "cep": cep,
@@ -57,5 +59,6 @@ class ResultCep {
         "gia": gia,
         "ddd": ddd,
         "siafi": siafi,
+        "erro": erro,
       };
 }

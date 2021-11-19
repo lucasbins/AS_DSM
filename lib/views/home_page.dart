@@ -1,10 +1,11 @@
 // ignore: import_of_legacy_library_into_null_safe
-import 'dart:convert';
+// ignore_for_file: unnecessary_null_comparison
 
-import 'package:flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:web_service/models/result_cep.dart';
 import 'package:web_service/services/via_cep_service.dart';
+import 'package:share/share.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -17,8 +18,8 @@ class _HomePageState extends State<HomePage> {
   final _searchCepController = TextEditingController();
   bool _loading = false;
   bool _enableField = true;
-  bool _cepValido = false;
   String _result = '';
+  String _erro = '';
 
   @override
   void dispose() {
@@ -31,6 +32,17 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Consultar CEP'),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(
+              Icons.share,
+              color: Colors.black,
+            ),
+            onPressed: () {
+              _share(context);
+            },
+          )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -107,17 +119,20 @@ class _HomePageState extends State<HomePage> {
 
     if (cep.length == 8) {
       final resultCep = await ViaCepService.fetchCep(cep: cep);
-      // ignore: avoid_print
-      print(resultCep.localidade); // Exibindo somente a localidade no terminal
-
-      setState(() {
-        _result = resultCep.toJson();
-      });
-
-      _searching(false);
+      if (resultCep.erro == null) {
+        setState(() {
+          _result = resultCep.toJson();
+        });
+        _searching(false);
+      } else {
+        _erro = 'Cep Inválido';
+        _searching(false);
+        _showTopSnackBar(context, _erro);
+      }
     } else {
+      _erro = 'Cep Inválido';
       _searching(false);
-      _showTopSnackBar(context);
+      _showTopSnackBar(context, _erro);
     }
   }
 
@@ -125,52 +140,64 @@ class _HomePageState extends State<HomePage> {
     dynamic cep;
     if (_result != '') {
       cep = ResultCep.fromJson(_result);
-      return Container(
-        padding: const EdgeInsets.only(top: 20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text('Cep: ' + cep.cep),
-            Text('Logradouro: ' + cep.logradouro),
-            Text('Complemento: ' + cep.complemento),
-            Text('Bairro: ' + cep.bairro),
-            Text('Cidade: ' + cep.localidade),
-            Text('Estado: ' + cep.uf),
-            Text('Ibge: ' + cep.ibge),
-            Text('Gia: ' + cep.gia),
-            Text('DDD: ' + cep.ddd),
-            Text('Siafi: ' + cep.siafi),
-          ],
-        ),
-      );
+      if (cep.erro == null) {
+        return Container(
+          padding: const EdgeInsets.only(top: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('Cep: ' + cep.cep),
+              Text('Logradouro: ' + cep.logradouro),
+              Text('Complemento: ' + cep.complemento),
+              Text('Bairro: ' + cep.bairro),
+              Text('Cidade: ' + cep.localidade),
+              Text('Estado: ' + cep.uf),
+              Text('Ibge: ' + cep.ibge),
+              Text('Gia: ' + cep.gia),
+              Text('DDD: ' + cep.ddd),
+              Text('Siafi: ' + cep.siafi),
+            ],
+          ),
+        );
+      } else {
+        _erro = 'Cep Inválido';
+        _showTopSnackBar(context, _erro);
+      }
     }
-
     return Container(
       padding: const EdgeInsets.only(top: 20.0),
-      child: Text(''),
+      child: const Text(''),
     );
   }
 
   bool _validaCep(String cep) {
     if (cep.isEmpty) {
-      setState(() {
-        _cepValido = true;
-      });
+      setState(() {});
       return false;
     }
-    setState(() {
-      _cepValido = false;
-    });
+    setState(() {});
     _searchCep();
     return true;
   }
 
-  void _showTopSnackBar(BuildContext context) => Flushbar(
-        icon: const Icon(Icons.error, size: 32, color: Colors.red),
+  void _showTopSnackBar(BuildContext context, String erro) => Flushbar(
+        icon: const Icon(Icons.error, size: 40, color: Colors.red),
         shouldIconPulse: false,
-        title: 'title',
-        message: 'hello',
-        duration: const Duration(seconds: 1),
+        title: 'ERRO',
+        message: erro,
+        duration: const Duration(seconds: 3),
         flushbarPosition: FlushbarPosition.TOP,
       )..show(context);
+
+  void _share(BuildContext context) {
+    dynamic cep;
+    if (_result != '') {
+      cep = ResultCep.fromJson(_result);
+      Share.share(
+        "cep: ${cep.cep}, Logradouro: ${cep.logradouro}, Complemento: ${cep.complemento},"
+        "Bairro: ${cep.bairro}, Cidade: ${cep.localidade}, Uf: ${cep.uf}, Ibge: ${cep.ibge},"
+        "Gia: ${cep.gia}, DDD: ${cep.ddd}, Siafi: ${cep.siafi}.",
+      );
+    }
+  }
 }

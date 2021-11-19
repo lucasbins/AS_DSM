@@ -19,7 +19,7 @@ class MyThemes {
             color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        primary: Colors.yellow,
+        primary: Colors.blue,
         onPrimary: Colors.black,
         textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
